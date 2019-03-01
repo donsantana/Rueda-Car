@@ -1,0 +1,6 @@
+framework module Pods_RuedaCar {
+  umbrella header "Pods-RuedaCar-umbrella.h"
+
+  export *
+  module * { export * }
+}
