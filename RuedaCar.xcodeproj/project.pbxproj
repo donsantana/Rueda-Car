@@ -71,7 +71,6 @@
 		C63A6B24245F6A21007B0EE5 /* xoalogo.png in Resources */ = {isa = PBXBuildFile; fileRef = C63A6B23245F6A21007B0EE5 /* xoalogo.png */; };
 		C63A6B2A245F7AB0007B0EE5 /* InicioController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C63A6B29245F7AB0007B0EE5 /* InicioController.swift */; };
 		C63A6B30245F7AF1007B0EE5 /* InicioControllerExt.swift in Sources */ = {isa = PBXBuildFile; fileRef = C63A6B2C245F7AF0007B0EE5 /* InicioControllerExt.swift */; };
-		C63A6B32245F7AF1007B0EE5 /* InicioSocketExt.swift in Sources */ = {isa = PBXBuildFile; fileRef = C63A6B2E245F7AF1007B0EE5 /* InicioSocketExt.swift */; };
 		C63A6B3624610386007B0EE5 /* InicioFunctionsExt.swift in Sources */ = {isa = PBXBuildFile; fileRef = C63A6B3524610386007B0EE5 /* InicioFunctionsExt.swift */; };
 		C63A6FB1227F675A0095AF3C /* ApiRequestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C63A6FB0227F675A0095AF3C /* ApiRequestController.swift */; };
 		C63D220821D56150007378D7 /* CSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = C63D220721D56150007378D7 /* CSocket.swift */; };
@@ -145,6 +144,7 @@
 		C6D3198F25916F8500A4BF1C /* Muli-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C6D3198525916F8500A4BF1C /* Muli-LightItalic.ttf */; };
 		C6D3199025916F8500A4BF1C /* Muli-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C6D3198625916F8500A4BF1C /* Muli-Bold.ttf */; };
 		C6D67957228BAFFC00C74B6E /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C6D67956228BAFFC00C74B6E /* Launch Screen.storyboard */; };
+		C6D7EE7326291A1700F42FF0 /* InicioSocketExt.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6D7EE7226291A1700F42FF0 /* InicioSocketExt.swift */; };
 		C6F0BB1923B7049E00266396 /* SolPendientesCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C6F0BB1823B7049E00266396 /* SolPendientesCell.xib */; };
 		C6F0BB1B23B7053800266396 /* SolPendientesViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6F0BB1A23B7053800266396 /* SolPendientesViewCell.swift */; };
 		C6F27B08238F2C5400679E07 /* SolicitudHistorial.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6F27B07238F2C5400679E07 /* SolicitudHistorial.swift */; };
@@ -231,8 +231,7 @@
 		C63A6B21245F68C9007B0EE5 /* Responsive.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Responsive.swift; sourceTree = "<group>"; };
 		C63A6B23245F6A21007B0EE5 /* xoalogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = xoalogo.png; sourceTree = "<group>"; };
 		C63A6B29245F7AB0007B0EE5 /* InicioController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = InicioController.swift; path = ../Controllers/InicioController.swift; sourceTree = "<group>"; };
-		C63A6B2C245F7AF0007B0EE5 /* InicioControllerExt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = InicioControllerExt.swift; path = ../premiumcar/PremiumCar/InicioControllerExt.swift; sourceTree = SOURCE_ROOT; };
-		C63A6B2E245F7AF1007B0EE5 /* InicioSocketExt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = InicioSocketExt.swift; path = ../premiumcar/PremiumCar/InicioSocketExt.swift; sourceTree = SOURCE_ROOT; };
+		C63A6B2C245F7AF0007B0EE5 /* InicioControllerExt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = InicioControllerExt.swift; path = RuedaCar/Inicio/InicioControllerExt.swift; sourceTree = SOURCE_ROOT; };
 		C63A6B3524610386007B0EE5 /* InicioFunctionsExt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InicioFunctionsExt.swift; sourceTree = "<group>"; };
 		C63A6FB0227F675A0095AF3C /* ApiRequestController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiRequestController.swift; sourceTree = "<group>"; };
 		C63D220721D56150007378D7 /* CSocket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CSocket.swift; sourceTree = "<group>"; };
@@ -307,6 +306,7 @@
 		C6D3198525916F8500A4BF1C /* Muli-LightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Muli-LightItalic.ttf"; sourceTree = "<group>"; };
 		C6D3198625916F8500A4BF1C /* Muli-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Muli-Bold.ttf"; sourceTree = "<group>"; };
 		C6D67956228BAFFC00C74B6E /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		C6D7EE7226291A1700F42FF0 /* InicioSocketExt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = InicioSocketExt.swift; path = RuedaCar/InicioSocketExt.swift; sourceTree = SOURCE_ROOT; };
 		C6F0BB1823B7049E00266396 /* SolPendientesCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SolPendientesCell.xib; sourceTree = "<group>"; };
 		C6F0BB1A23B7053800266396 /* SolPendientesViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolPendientesViewCell.swift; sourceTree = "<group>"; };
 		C6F27B07238F2C5400679E07 /* SolicitudHistorial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolicitudHistorial.swift; sourceTree = "<group>"; };
@@ -711,10 +711,10 @@
 		C6C3A4F7245F32A00084F409 /* Inicio */ = {
 			isa = PBXGroup;
 			children = (
+				C6D7EE7226291A1700F42FF0 /* InicioSocketExt.swift */,
 				C63A6B29245F7AB0007B0EE5 /* InicioController.swift */,
 				C63A6B2C245F7AF0007B0EE5 /* InicioControllerExt.swift */,
 				C6445813255F78160000433E /* InicioControllerTablesExt.swift */,
-				C63A6B2E245F7AF1007B0EE5 /* InicioSocketExt.swift */,
 				C63A6B3524610386007B0EE5 /* InicioFunctionsExt.swift */,
 				C6700456246612FE00FF97AB /* InicioMapExt.swift */,
 				C680738C256DEAE50093E4DE /* SolicitudPanel.swift */,
@@ -1086,8 +1086,8 @@
 				C6C3A507245F335A0084F409 /* PerfilController.swift in Sources */,
 				C68D05A4259CA2BF00E124AB /* MGLPointAnnotation.swift in Sources */,
 				C64363A222EBC4A50006F235 /* OfertasControllerExt.swift in Sources */,
-				C63A6B32245F7AF1007B0EE5 /* InicioSocketExt.swift in Sources */,
 				C68ED7C12298B94400E2F8AC /* R.generated.swift in Sources */,
+				C6D7EE7326291A1700F42FF0 /* InicioSocketExt.swift in Sources */,
 				C6C3A506245F335A0084F409 /* PerfilControllerExt.swift in Sources */,
 				C6A37F192557327000C79BFF /* TerminosController.swift in Sources */,
 				AFD6564C1F9D42E100C8A5BD /* Solicitud.swift in Sources */,
