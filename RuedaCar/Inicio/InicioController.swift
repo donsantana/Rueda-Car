@@ -8,41 +8,56 @@
 
 import UIKit
 import CoreLocation
-import MapKit
 import SocketIO
 import Canvas
 import AddressBook
 import AVFoundation
 import CoreData
-import GoogleMobileAds
+import Mapbox
+import MapboxSearch
+import MapboxSearchUI
+import MapboxGeocoder
+import FloatingPanel
+import SideMenu
+//import PaymentezSDK
 
 struct MenuData {
   var imagen: String
   var title: String
 }
 
-class InicioController: UIViewController, CLLocationManagerDelegate, URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate, UIApplicationDelegate, UIGestureRecognizerDelegate {
+class InicioController: BaseController, CLLocationManagerDelegate, URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate, UIApplicationDelegate, UIGestureRecognizerDelegate {
+  var socketService = SocketService()
   var coreLocationManager : CLLocationManager!
-  var miposicion = MKPointAnnotation()
-  var origenAnotacion = MKPointAnnotation()
-  var taxiLocation = MKPointAnnotation()
-  var taxi : CTaxi!
+  var origenAnnotation = MGLPointAnnotation()
+  var destinoAnnotation = MGLPointAnnotation()
+  var taxiLocation = MGLPointAnnotation()
+  var taxi : Taxi!
   var login = [String]()
   var idusuario : String = ""
-  var indexselect = Int()
   var contador = 0
-  var centro = CLLocationCoordinate2D()
-  var TelefonosCallCenter = [CTelefono]()
   var opcionAnterior : IndexPath!
   var evaluacion: CEvaluacion!
+  var transporteIndex: Int! = -1
+  var tipoTransporte: String!
+  var isVoucherSelected = false
+  var apiService = ApiService()
+  var destinoPactadas:[DireccionesPactadas] = []
   
+  var origenCell = Bundle.main.loadNibNamed("OrigenCell", owner: self, options: nil)?.first as! OrigenViewCell
+  var destinoCell = Bundle.main.loadNibNamed("DestinoCell", owner: self, options: nil)?.first as! DestinoCell
+  var ofertaDataCell = Bundle.main.loadNibNamed("OfertaDataCell", owner: self, options: nil)?.first as! OfertaDataViewCell
+  var pagoCell = Bundle.main.loadNibNamed("PagoCell", owner: self, options: nil)?.first as! PagoViewCell
+  var pagoYapaCell = Bundle.main.loadNibNamed("PagoYapaCell", owner: self, options: nil)?.first as! PagoYapaViewCell
+  var contactoCell = Bundle.main.loadNibNamed("ContactoCell", owner: self, options: nil)?.first as! ContactoViewCell
+  var pactadaCell = Bundle.main.loadNibNamed("PactadaCell", owner: self, options: nil)?.first as! PactadaCell
+  
+  var formularioDataCellList: [UITableViewCell] = []
   //var SMSVoz = CSMSVoz()
   
   //Reconect Timer
   var timer = Timer()
   //var fechahora: String!
-  
-  
   
   //Timer de Envio
   var EnviosCount = 0
@@ -53,177 +68,185 @@ class InicioController: UIViewController, CLLocationManagerDelegate, URLSessionD
   var DireccionesArray = [[String]]()//[["Dir 1", "Ref1"],["Dir2","Ref2"],["Dir3", "Ref3"],["Dir4","Ref4"],["Dir 5", "Ref5"]]//["Dir 1", "Dir2"]
   
   //Menu variables
-  var MenuArray = [MenuData(imagen: "solicitud", title: "En proceso"), MenuData(imagen: "operadora", title: "Call center"),MenuData(imagen: "clave", title: "Perfil"),MenuData(imagen: "compartir", title: "Compartir app"), MenuData(imagen: "sesion", title: "Cerrar Sesion"), MenuData(imagen: "salir2", title: "Salir")]
+  var sideMenu: SideMenuNavigationController?
+  
+  var menuArray = [[MenuData(imagen: "solicitud", title: "Viajes en proceso"),MenuData(imagen: "historial", title: "Historial de Viajes")],[MenuData(imagen: "callCenter", title: "Operadora"),MenuData(imagen: "terminos", title: "Términos y condiciones"),MenuData(imagen: "compartir", title: "Compartir app")],[MenuData(imagen: "salir2", title: "Salir")]]//,MenuData(imagen: "card", title: "Mis tarjetas")
+  var ofertaItem = UITabBarItem(title: "", image: UIImage(named: "tipoOferta"), selectedImage: UIImage(named: "tipoOferta")!.addBorder(radius: 10, color: Customization.tabBorderColor))
+  var taximetroItem = UITabBarItem(title: "", image: UIImage(named: "tipoTaximetro"), selectedImage: UIImage(named: "tipoTaximetro")!.addBorder(radius: 10, color: Customization.tabBorderColor))
+  var horasItem = UITabBarItem(title: "", image: UIImage(named: "tipoHoras"), selectedImage: UIImage(named: "tipoHoras")!.addBorder(radius: 10, color: Customization.tabBorderColor))
+  var pactadaItem = UITabBarItem(title: "", image: UIImage(named: "tipoPactada"), selectedImage: UIImage(named: "tipoPactada")!.addBorder(radius: 10, color: Customization.tabBorderColor))
+  
   //variables de interfaz
   
+  var TablaDirecciones = UITableView()
   
+  let geocoder = Geocoder.shared
+  
+  let openMapBtn = UIButton(type: UIButton.ButtonType.system)
+  
+  var searchingAddress = "origen"
+
   //CONSTRAINTS
   var btnViewTop: NSLayoutConstraint!
+  @IBOutlet weak var formularioSolicitudHeight: NSLayoutConstraint!
+  @IBOutlet weak var formularioSolicitudBottomConstraint: NSLayoutConstraint!
   
-  @IBOutlet weak var origenIcono: UIImageView!
-  @IBOutlet weak var mapaVista: MKMapView!
-  @IBOutlet weak var adsBannerView: GADBannerView!
+  //MAP
+  let searchEngine = SearchEngine()
+  var searchController: MapboxSearchController!
+  var panelController: MapboxPanelController!
   
+  var solicitudPanel = FloatingPanelController()
+  var nuevaSolicitud: Solicitud?
   
+  @IBOutlet weak var mapView: MGLMapView!
   
-  //@IBOutlet weak var destinoText: UITextField!
-  @IBOutlet weak var origenText: UITextField!
-  @IBOutlet weak var referenciaText: UITextField!
-  @IBOutlet weak var TablaDirecciones: UITableView!
-  @IBOutlet weak var RecordarView: UIView!
-  @IBOutlet weak var RecordarSwitch: UISwitch!
-  @IBOutlet weak var BtnsView: UIView!
-  @IBOutlet weak var ContactoView: UIView!
-  @IBOutlet weak var NombreContactoText: UITextField!
-  @IBOutlet weak var TelefonoContactoText: UITextField!
-  
-  
-  
+  @IBOutlet weak var locationIcono: UIImageView!
+
   @IBOutlet weak var LocationBtn: UIButton!
-  @IBOutlet weak var SolicitarBtn: UIButton!
-  @IBOutlet weak var formularioSolicitud: UIView!
-  @IBOutlet weak var SolicitudView: CSAnimationView!
+  @IBOutlet weak var SolicitudView: UIView!
   
-  @IBOutlet weak var EnviarSolBtn: UIButton!
   
   
   //MENU BUTTONS
-  @IBOutlet weak var MenuView1: UIView!
-  @IBOutlet weak var MenuTable: UITableView!
-  @IBOutlet weak var NombreUsuario: UILabel!
   @IBOutlet weak var TransparenciaView: UIVisualEffectView!
   
+  @IBOutlet weak var solicitudFormTable: UITableView!
   
-  @IBOutlet weak var SolPendientesView: UIView!
+  @IBOutlet weak var addressView: UIView!
+  @IBOutlet weak var addressPicker: UIPickerView!
   
-  
-  
-  @IBOutlet weak var AlertaEsperaView: UIView!
-  @IBOutlet weak var MensajeEspera: UITextView!
-  
-  
-  //Voucher
-  @IBOutlet weak var VoucherView: UIView!
-  @IBOutlet weak var VoucherCheck: UISwitch!
-  @IBOutlet weak var VoucherEmpresaName: UILabel!
-  @IBOutlet weak var destinoText: UITextField!
+  @IBOutlet weak var destinoAddressView: UIView!
+  @IBOutlet weak var destinoAddressPicker: UIPickerView!
   
   
-  @IBOutlet weak var CancelarSolicitudProceso: UIButton!
+  @IBOutlet weak var tabBar: UITabBar!
+
+  @IBOutlet weak var panicoView: UIView!
   
-  
-  //CUSTOM CONSTRAINTS
-  @IBOutlet weak var textFieldHeight: NSLayoutConstraint!
-  @IBOutlet weak var recordarViewBottom: NSLayoutConstraint!
-  @IBOutlet weak var origenTextBottom: NSLayoutConstraint!
-  @IBOutlet weak var datosSolictudBottom: NSLayoutConstraint!
-  @IBOutlet weak var contactoViewTop: NSLayoutConstraint!
-  @IBOutlet weak var contactViewHeight: NSLayoutConstraint!
-  @IBOutlet weak var voucherViewTop: NSLayoutConstraint!
-  
-  
-  
+  @IBOutlet weak var mapBottomConstraint: NSLayoutConstraint!
   
   override func viewDidLoad() {
+    super.hideMenuBtn = false
+    super.hideCloseBtn = false
     super.viewDidLoad()
-    //LECTURA DEL FICHERO PARA AUTENTICACION
     
-    mapaVista.delegate = self
+    self.solicitudFormTable.rowHeight = UITableView.automaticDimension
+    self.checkForNewVersions()
+    self.socketService.delegate = self
+    self.tabBar.delegate = self
+    self.tabBar.layer.borderColor = UIColor.clear.cgColor
+    self.tabBar.clipsToBounds = true
+    mapView.delegate = self
+    mapView.automaticallyAdjustsContentInset = true
     coreLocationManager = CLLocationManager()
     coreLocationManager.delegate = self
-    self.referenciaText.delegate = self
-    self.NombreContactoText.delegate = self
-    self.TelefonoContactoText.delegate = self
-    self.origenText.delegate = self
-    self.destinoText.delegate = self
+    self.contactoCell.contactoNameText.delegate = self
+    self.contactoCell.telefonoText.delegate = self
+    self.origenCell.origenText.delegate = self
+    self.destinoCell.destinoText.delegate = self
+    self.pagoCell.delegate = self
+    self.pagoCell.referenciaText.delegate = self
+    self.apiService.delegate = self
+    self.addressPicker.delegate = self
+    self.destinoAddressPicker.delegate = self
+    self.origenAnnotation.subtitle = "origen"
+    self.destinoAnnotation.subtitle = "destino"
     
-    //        //ADS BANNER VIEW
-    //        self.adsBannerView.adUnitID = "ca-app-pub-3940256099942544/2934735716"
-    //        self.adsBannerView.rootViewController = self
-    //        self.adsBannerView.load(GADRequest())
-    //        self.adsBannerView.delegate = self
+    //MARK:- MENU INITIALIZATION
+    self.sideMenu = self.addSideMenu()
+  
+    self.SolicitudView.addShadow()
+
+    self.LocationBtn.addShadow()
+    self.LocationBtn.setImage(UIImage(named:"locationBtn")!.withRenderingMode(.alwaysTemplate), for: .normal)
+    self.LocationBtn.customImageColor(color: Customization.buttonsTitleColor, backgroundColor: Customization.buttonActionColor)
+
+    self.TransparenciaView.standardConfig()
     
-    //solicitud de autorización para acceder a la localización del usuario
-    self.NombreUsuario.text = globalVariables.cliente.nombreApellidos
+    //MARK:- MAPBOX SEARCH ADDRESS BAR
+    self.searchController = MapboxSearchController()
     
-    self.MenuTable.delegate = self
-    self.MenuView1.layer.borderColor = UIColor.lightGray.cgColor
-    self.MenuView1.layer.borderWidth = 0.3
-    self.MenuView1.layer.masksToBounds = false
-    self.NombreContactoText.setBottomBorder(borderColor: UIColor.gray)
-    self.TelefonoContactoText.setBottomBorder(borderColor: UIColor.gray)
+    self.panelController = MapboxPanelController(rootViewController: self.searchController)
+    func currentLocation() -> CLLocationCoordinate2D? { mapboxSFOfficeCoordinate }
+    let mapboxSFOfficeCoordinate = CLLocationCoordinate2D(latitude: 37.7911551, longitude: -122.3966103)
     
-    //self.MenuView1.backgroundColor = UIColor(patternImage: UIImage(named: "background")!)
+    searchController.delegate = self
+    
+    //searchEngine.delegate = self
+    
+    //MARK:- PANEL DEFINITION
+    //letsolicitudPanel = FloatingPanelController()
+    self.solicitudPanel.delegate = self
+    guard let contentPanel = storyboard?.instantiateViewController(withIdentifier: "SolicitudPanel") as? SolicitudPanel else{
+      return
+    }
+    
+    self.solicitudPanel.set(contentViewController: contentPanel)
+    //solicitudPanel.addPanel(toParent: self)
     
     coreLocationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
     coreLocationManager.startUpdatingLocation()  //Iniciar servicios de actualiación de localización del usuario
     
     NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
     
+    NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+    
     let tapGesture = UITapGestureRecognizer(target: self, action: #selector(ocultarTeclado))
     tapGesture.delegate = self
-    self.SolicitudView.addGestureRecognizer(tapGesture)
+    self.solicitudFormTable.addGestureRecognizer(tapGesture)
     
-    let MenuTapGesture = UITapGestureRecognizer(target: self, action: #selector(ocultarMenu))
-    self.TransparenciaView.addGestureRecognizer(MenuTapGesture)
+    let mapTapGesture = UITapGestureRecognizer(target: self, action: #selector(self.hideSearchPanel))
+    mapTapGesture.delegate = self
+    self.mapView.addGestureRecognizer(mapTapGesture)
     
-    self.navigationController?.setNavigationBarHidden(true, animated: false)
-    //Calculate the custom constraints
-    var spaceBetween = CGFloat(20)
-    if UIScreen.main.bounds.height < 736{
-      self.textFieldHeight.constant = 40
-      spaceBetween = 10
-    }else{
-      self.textFieldHeight.constant = 45
-    }
-    
-    //self.recordarViewBottom.constant = -spaceBetween
-    //self.origenTextBottom.constant = -spaceBetween
-    self.datosSolictudBottom.constant = -spaceBetween
-    self.contactoViewTop.constant = spaceBetween
-    self.voucherViewTop.constant = spaceBetween
+    //INITIALIZING INTERFACES VARIABLES
+    //self.pagoCell.initContent(isCorporativo: true)
     
     if let tempLocation = self.coreLocationManager.location?.coordinate{
-      self.origenAnotacion.coordinate = (coreLocationManager.location?.coordinate)!
-      self.origenAnotacion.title = "origen"
+      globalVariables.cliente.annotation.coordinate = tempLocation
+      self.origenAnnotation.coordinate = tempLocation
+      coreLocationManager.stopUpdatingLocation()
+      self.initMapView()
     }else{
+      globalVariables.cliente.annotation.coordinate = (CLLocationCoordinate2D(latitude: -2.173714, longitude: -79.921601))
       coreLocationManager.requestWhenInUseAuthorization()
-      self.origenAnotacion.coordinate = (CLLocationCoordinate2D(latitude: -2.173714, longitude: -79.921601))
     }
     
-    let span = MKCoordinateSpan.init(latitudeDelta: 0.005, longitudeDelta: 0.005)
-    let region = MKCoordinateRegion(center: self.origenAnotacion.coordinate, span: span)
-    self.mapaVista.setRegion(region, animated: true)
+    self.origenCell.initContent()
+    self.destinoCell.initContent()
+    self.origenCell.origenText.addTarget(self, action: #selector(textViewDidChange(_:)), for: .editingChanged)
+
+    //self.tabBar.selectionIndicatorImage = UIImage().createSelectionIndicator(color: Customization.buttonActionColor, size: CGSize(width: tabBar.frame.width/CGFloat(tabBar.items!.count), height: tabBar.frame.height), lineWidth: 2.0)
     
-    if globalVariables.socket.status.active{
-      let ColaHilos = OperationQueue()
-      let Hilos : BlockOperation = BlockOperation (block: {
-        self.SocketEventos()
-        self.timer.invalidate()
-        let url = "#U,# \n"
-        self.EnviarSocket(url)
-        let telefonos = "#Telefonos,# \n"
-        self.EnviarSocket(telefonos)
-        let datos = "OT"
-        self.EnviarSocket(datos)
-      })
-      ColaHilos.addOperation(Hilos)
-    }else{
-      self.Reconect()
+    globalVariables.socket.on("disconnect"){data, ack in
+      self.timer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(self.Reconect), userInfo: nil, repeats: true)
     }
     
-    //self.referenciaText.enablesReturnKeyAutomatically = false
-    //self.origenText.delegate = self
-    self.TablaDirecciones.delegate = self
-    
-    self.origenText.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
-    
-    //PEDIR PERMISO PARA EL MICROPHONO
+    //PEDIR PERMISO PARA MICROPHONE
     switch AVAudioSession.sharedInstance().recordPermission {
     case AVAudioSession.RecordPermission.granted:
       print("Permission granted")
     case AVAudioSession.RecordPermission.denied:
       print("Pemission denied")
+      let locationAlert = UIAlertController (title: "Error de Micrófono", message: "Es necesario que active el micrófono de su dispositivo.", preferredStyle: .alert)
+      locationAlert.addAction(UIAlertAction(title: "Aceptar", style: .default, handler: {alerAction in
+        if #available(iOS 10.0, *) {
+          let settingsURL = URL(string: UIApplication.openSettingsURLString)!
+          UIApplication.shared.open(settingsURL, options: [:], completionHandler: { success in
+            exit(0)
+          })
+        } else {
+          if let url = NSURL(string:UIApplication.openSettingsURLString) {
+            UIApplication.shared.openURL(url as URL)
+            exit(0)
+          }
+        }
+      }))
+      locationAlert.addAction(UIAlertAction(title: "No", style: .default, handler: {alerAction in
+        exit(0)
+      }))
+      self.present(locationAlert, animated: true, completion: nil)
     case AVAudioSession.RecordPermission.undetermined:
       AVAudioSession.sharedInstance().requestRecordPermission({(granted: Bool)-> Void in
         if granted {
@@ -235,207 +258,125 @@ class InicioController: UIViewController, CLLocationManagerDelegate, URLSessionD
     default:
       break
     }
+
+    self.socketService.initListenEventos()
+    self.initTipoSolicitudBar()
+    //self.loadFormularioData()
     
+    //self.apiService.listCardsAPIService()
+
   }
   
   override func viewDidAppear(_ animated: Bool){
-    self.NombreContactoText.setBottomBorder(borderColor: UIColor.black)
-    self.TelefonoContactoText.setBottomBorder(borderColor: UIColor.black)
-    self.btnViewTop = NSLayoutConstraint(item: self.BtnsView, attribute: .top, relatedBy: .equal, toItem: self.origenText, attribute: .bottom, multiplier: 1, constant: 0)
+    self.navigationController?.setNavigationBarHidden(true, animated: false)
+    self.contactoCell.contactoNameText.setBottomBorder(borderColor: UIColor.black)
+    self.contactoCell.telefonoText.setBottomBorder(borderColor: UIColor.black)
+    //self.btnViewTop = NSLayoutConstraint(item: self.BtnsView, attribute: .top, relatedBy: .equal, toItem: self.origenCell.origenText, attribute: .bottom, multiplier: 1, constant: 0)
+  }
+  
+  override func viewDidDisappear(_ animated: Bool) {
+    self.navigationController?.setNavigationBarHidden(true, animated: false)
   }
   
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    self.miposicion.coordinate = (locations.last?.coordinate)!
-    self.SolicitarBtn.isHidden = false
+    globalVariables.cliente.annotation.coordinate = (locations.last?.coordinate)!
+    //self.origenAnnotation.coordinate = (locations.last?.coordinate)!
+    //self.initMapView()
   }
   
-
+ override func homeBtnAction(){
+  present(sideMenu!, animated: true)
+ }
+  
+  override func closeBtnAction() {
+    var panicoViewController = storyboard?.instantiateViewController(withIdentifier: "panicoChildVC") as! PanicoController
+    self.addChild(panicoViewController)
+    self.view.addSubview(panicoViewController.view)
+  }
+ 
+  
   //MARK:- BOTONES GRAFICOS ACCIONES
-  @IBAction func MostrarMenu(_ sender: Any) {
-    self.MenuView1.isHidden = !self.MenuView1.isHidden
-    self.MenuView1.startCanvasAnimation()
-    self.TransparenciaView.isHidden = self.MenuView1.isHidden
-    //self.Inicio()
-    self.TransparenciaView.startCanvasAnimation()
-    
-  }
-  @IBAction func SalirApp(_ sender: Any) {
-    let fileAudio = FileManager()
-    let AudioPath = NSHomeDirectory() + "/Library/Caches/Audio"
-    do {
-      try fileAudio.removeItem(atPath: AudioPath)
-    }catch{
-    }
-    let datos = "#SocketClose," + globalVariables.cliente.idCliente + ",# \n"
-    EnviarSocket(datos)
-    exit(3)
-  }
   
   @IBAction func RelocateBtn(_ sender: Any) {
-    let span = MKCoordinateSpan.init(latitudeDelta: 0.005, longitudeDelta: 0.005)
-    let region = MKCoordinateRegion(center: self.origenAnotacion.coordinate, span: span)
-    self.mapaVista.setRegion(region, animated: true)
-    
+    self.initMapView()
   }
+  
   //SOLICITAR BUTTON
   @IBAction func Solicitar(_ sender: AnyObject) {
     //TRAMA OUT: #Posicion,idCliente,latorig,lngorig
-    self.origenAnotacion.coordinate = self.miposicion.coordinate
-    let datos = "#Posicion," + globalVariables.cliente.idCliente + "," + "\(self.origenAnotacion.coordinate.latitude)," + "\(self.origenAnotacion.coordinate.longitude)," + "# \n"
-    EnviarSocket(datos)
-    
-  }
-  
-  //Voucher check
-  @IBAction func SwicthVoucher(_ sender: Any) {
-//    if self.VoucherCheck.isOn{
-//      self.destinoText.isHidden = false
-//      self.destinoText.becomeFirstResponder()
-//    }else{
-//      self.destinoText.isHidden = true
-//      self.destinoText.resignFirstResponder()
-//    }
-  }
-  
-  //Aceptar y Enviar solicitud desde formulario solicitud
-  @IBAction func AceptarSolicitud(_ sender: AnyObject) {
-    
-    if self.destinoText.text!.isEmpty{
-      let alertaDos = UIAlertController (title: "Dirección de Destino", message: "La dirección de destino es un campo requerido para que su carrera sea aceptada.", preferredStyle: UIAlertController.Style.alert)
-      alertaDos.addAction(UIAlertAction(title: "Aceptar", style: .default, handler: {alerAction in
-        self.destinoText.becomeFirstResponder()
-      }))
-      self.present(alertaDos, animated: true, completion: nil)
-    }else{
-      if !(self.origenText.text?.isEmpty)! {
-        var voucher = "0"
-        let origen = self.cleanTextField(textfield: self.origenText)
-        
-        let referencia = self.cleanTextField(textfield: self.referenciaText)
-        
-        let destino = self.cleanTextField(textfield: self.destinoText)
-        
-        let nombreContactar = self.NombreContactoText.text!.isEmpty ? globalVariables.cliente.nombreApellidos : self.cleanTextField(textfield: self.NombreContactoText)
-        
-        let telefonoContactar = self.TelefonoContactoText.text!.isEmpty ? globalVariables.cliente.user : self.cleanTextField(textfield: self.TelefonoContactoText)
-        
-        let clienteSolicitud = self.NombreContactoText.text!.isEmpty ? globalVariables.cliente : CCliente(idUsuario: globalVariables.cliente.idUsuario, idcliente: globalVariables.cliente.idCliente, user: telefonoContactar!, nombre: nombreContactar!, email: globalVariables.cliente.email, empresa: globalVariables.cliente.empresa,foto: "<null>")
-        
-        mapaVista.removeAnnotations(mapaVista.annotations)
-        let nuevaSolicitud = Solicitud()
-        
-        nuevaSolicitud.DatosCliente(cliente: clienteSolicitud!)
-        
-//        nuevaSolicitud.DatosSolicitud(idSolicitud: origen, fechaHora: referencia, dirOrigen: destino,referenciaOrigen: Double(origenAnotacion.coordinate.latitude), dirDestino: Double(origenAnotacion.coordinate.longitude), latOrigen: "0", lngOrigen: "0",latDestino: "")
-        
-        if self.VoucherView.isHidden == false && self.VoucherCheck.isOn{
-          voucher = "1"
-        }
-        
-        if self.RecordarView.isHidden == false && self.RecordarSwitch.isOn{
-          let newFavorita = [self.origenText.text, referenciaText.text]
-          self.GuardarFavorita(newFavorita: newFavorita as! [String])
-        }
-        
-        self.CrearSolicitud(nuevaSolicitud,voucher: voucher)
-        DibujarIconos([self.origenAnotacion])
-        view.endEditing(true)
-      }else{
-        
-      }
-    }
-    //        if !(self.NombreContactoText.text?.isEmpty)! && (self.TelefonoContactoText.text?.isEmpty)!{
-    //            let alertaDos = UIAlertController (title: "Contactar a otra persona", message: "Debe teclear el número de teléfono de la persona que el conductor debe contactar.", preferredStyle: .alert)
-    //            alertaDos.addAction(UIAlertAction(title: "Aceptar", style: .default, handler: {alerAction in
-    //
-    //            }))
-    //            self.present(alertaDos, animated: true, completion: nil)
-    //        }else{
-    //            if (!(self.origenText.text?.isEmpty)! && self.TelefonoContactoText.text != "Escriba el nombre del contacto" && self.TelefonoContactoText.text != "Número de teléfono incorrecto"){
-    //                var voucher = "0"
-    //                var recordar = "0"
-    //                var origen = self.origenText.text!.uppercased()
-    //                origen = origen.replacingOccurrences(of: "Ñ", with: "N",options: .regularExpression, range: nil)
-    //                origen = origen.replacingOccurrences(of: "[,.]", with: "-",options: .regularExpression, range: nil)
-    //                origen = origen.replacingOccurrences(of: "[\n]", with: " ",options: .regularExpression, range: nil)
-    //                origen = origen.replacingOccurrences(of: "[#]", with: "No",options: .regularExpression, range: nil)
-    //                origen = origen.folding(options: .diacriticInsensitive, locale: .current)
-    //
-    //                self.referenciaText.endEditing(true)
-    //                var referencia = self.referenciaText.text!.uppercased()
-    //                referencia = referencia.replacingOccurrences(of: "Ñ", with: "N",options: .regularExpression, range: nil)
-    //                referencia = referencia.replacingOccurrences(of: "[,.]", with: "-",options: .regularExpression, range: nil)
-    //                referencia = referencia.replacingOccurrences(of: "[\n]", with: " ",options: .regularExpression, range: nil)
-    //                referencia = referencia.replacingOccurrences(of: "[#]", with: "No",options: .regularExpression, range: nil)
-    //                referencia = referencia.folding(options: .diacriticInsensitive, locale: .current)
-    //
-    //                mapaVista.removeAnnotations(self.mapaVista.annotations)
-    //                let nuevaSolicitud = Solicitud()
-    //                if !(NombreContactoText.text?.isEmpty)!{
-    //                    nuevaSolicitud.DatosOtroCliente(clienteId: globalVariables.cliente.idCliente, telefono: self.TelefonoContactoText.text!, nombre: self.NombreContactoText.text!)
-    //                }else{
-    //                    nuevaSolicitud.DatosCliente(cliente: globalVariables.cliente)
-    //                }
-    //                nuevaSolicitud.DatosSolicitud(dirorigen: origen, referenciaorigen: referencia, dirdestino: "null", latorigen: String(Double(origenAnotacion.coordinate.latitude)), lngorigen: String(Double(origenAnotacion.coordinate.longitude)), latdestino: "0.0", lngdestino: "0.0",FechaHora: "null")
-    //                if self.VoucherView.isHidden == false && self.VoucherCheck.isOn{
-    //                    voucher = "1"
-    //                }
-    //                if self.RecordarView.isHidden == false && self.RecordarSwitch.isOn{
-    //                    let newFavorita = [self.origenText.text, referenciaText.text]
-    //                    self.GuardarFavorita(newFavorita: newFavorita as! [String])
-    //                }
-    //                self.CrearSolicitud(nuevaSolicitud,voucher: voucher)
-    //                self.RecordarView.isHidden = true
-    //                //self.CancelarSolicitudProceso.isHidden = false
-    //            }else{
-    //
-    //            }
-    //        }
+//    self.loadFormularioData()
+//    let data = [
+//      "idcliente": globalVariables.cliente.id!,
+//      "latitud": self.origenAnnotation.coordinate.latitude,
+//      "longitud": self.origenAnnotation.coordinate.longitude
+//      ] as [String: Any]
+//    socketService.socketEmit("cargarvehiculoscercanos", datos: data)
   }
   
   //Boton para Cancelar Carrera
   @IBAction func CancelarSol(_ sender: UIButton) {
-    self.formularioSolicitud.isHidden = true
-    self.referenciaText.endEditing(true)
+    self.SolicitudView.isHidden = true
+    self.pagoCell.referenciaText.endEditing(true)
     self.Inicio()
-    self.origenText.text?.removeAll()
-    self.RecordarView.isHidden = true
-    self.RecordarSwitch.isOn = false
-    self.referenciaText.text?.removeAll()
-    self.SolicitarBtn.isHidden = false
+    self.origenCell.origenText.text?.removeAll()
+    //    self.RecordarView.isHidden = true
+    //    self.RecordarSwitch.isOn = false
+    self.pagoCell.referenciaText.text?.removeAll()
   }
   
-  // CANCELAR LA SOL MIENTRAS SE ESPERA LA FONFIRMACI'ON DEL TAXI
-  @IBAction func CancelarProcesoSolicitud(_ sender: AnyObject) {
-    MostrarMotivoCancelacion()
-  }
-  
-  @IBAction func MostrarTelefonosCC(_ sender: AnyObject) {
-    self.SolPendientesView.isHidden = true
-    DispatchQueue.main.async {
-      let vc = UIStoryboard(name:"Main", bundle:nil).instantiateViewController(withIdentifier: "CallCenter") as! CallCenterController
-      vc.telefonosCallCenter = self.TelefonosCallCenter
-      self.navigationController?.show(vc, sender: nil)
-    }
-    
-  }
-  
-  @IBAction func MostrarSolPendientes(_ sender: AnyObject) {
-    if globalVariables.solpendientes.count > 0{
-      DispatchQueue.main.async {
-        let vc = UIStoryboard(name:"Main", bundle:nil).instantiateViewController(withIdentifier: "ListaSolPdtes") as! SolicitudesTableController
-        vc.solicitudesMostrar = globalVariables.solpendientes
-        self.navigationController?.show(vc, sender: nil)
-      }
-    }else{
-      self.SolPendientesView.isHidden = !self.SolPendientesView.isHidden
-    }
-  }
-  
-  @IBAction func MapaMenu(_ sender: AnyObject) {
+  @IBAction func closeSolicitudForm(_ sender: Any) {
     Inicio()
   }
   
+  @IBAction func showProfile(_ sender: Any) {
+    let vc = R.storyboard.main.perfil()!
+    self.navigationController?.show(vc, sender: nil)
+  }
+  
+  @IBAction func hideAddressView(_ sender: Any) {
+    self.addressView.isHidden = true
+  }
+  
+  @IBAction func hideDestinoAddressView(_ sender: Any) {
+    self.destinoAddressView.isHidden = true
+  }
+  
+  @IBAction func takeOrigenAddress(_ sender: Any) {
+    self.addressView.isHidden = true
+  }
+  
+  @IBAction func takeDestinoAddress(_ sender: Any) {
+    self.destinoAddressView.isHidden = true
+  }
+  
+  @IBAction func closeView(_ sender: Any) {
+    if self.searchingAddress == "origen" {
+      self.origenAnnotation.updateAnnotation(newCoordinate: self.origenAnnotation.coordinate, newTitle: self.origenAnnotation.title!)
+    }else{
+      self.destinoAnnotation.updateAnnotation(newCoordinate: self.origenAnnotation.coordinate, newTitle: self.origenAnnotation.title!)
+    }
+    self.hideSearchPanel()
+    self.getDestinoFromSearch(annotation: self.origenAnnotation)
+  }
+  
+  @IBAction func getAddressText(_ sender: Any) {
+    if self.searchingAddress == "destino"{
+      if !(self.panelController.state == .collapsed){
+        self.destinoAnnotation.updateAnnotation(newCoordinate: self.origenAnnotation.coordinate, newTitle: self.searchController.searchEngine.query)
+        self.getDestinoFromSearch(annotation: self.destinoAnnotation)
+      }else{
+        self.getDestinoFromSearch(annotation: self.destinoAnnotation)
+      }
+    }else{
+      if !(self.panelController.state == .collapsed){
+        self.origenAnnotation.title = self.searchController.searchEngine.query
+      }else{
+        self.getAddressFromCoordinate(self.origenAnnotation)
+      }
+      self.origenCell.origenText.text = self.origenAnnotation.title
+    }
+    self.hideSearchPanel()
+  } 
 }
 
 

@@ -230,7 +230,7 @@
 		C63A6B1E245F63BC007B0EE5 /* apiService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = apiService.swift; sourceTree = "<group>"; };
 		C63A6B21245F68C9007B0EE5 /* Responsive.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Responsive.swift; sourceTree = "<group>"; };
 		C63A6B23245F6A21007B0EE5 /* xoalogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = xoalogo.png; sourceTree = "<group>"; };
-		C63A6B29245F7AB0007B0EE5 /* InicioController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = InicioController.swift; path = ../Controllers/InicioController.swift; sourceTree = "<group>"; };
+		C63A6B29245F7AB0007B0EE5 /* InicioController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InicioController.swift; sourceTree = "<group>"; };
 		C63A6B2C245F7AF0007B0EE5 /* InicioControllerExt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = InicioControllerExt.swift; path = RuedaCar/Inicio/InicioControllerExt.swift; sourceTree = SOURCE_ROOT; };
 		C63A6B3524610386007B0EE5 /* InicioFunctionsExt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InicioFunctionsExt.swift; sourceTree = "<group>"; };
 		C63A6FB0227F675A0095AF3C /* ApiRequestController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiRequestController.swift; sourceTree = "<group>"; };
@@ -306,7 +306,7 @@
 		C6D3198525916F8500A4BF1C /* Muli-LightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Muli-LightItalic.ttf"; sourceTree = "<group>"; };
 		C6D3198625916F8500A4BF1C /* Muli-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Muli-Bold.ttf"; sourceTree = "<group>"; };
 		C6D67956228BAFFC00C74B6E /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
-		C6D7EE7226291A1700F42FF0 /* InicioSocketExt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = InicioSocketExt.swift; path = RuedaCar/InicioSocketExt.swift; sourceTree = SOURCE_ROOT; };
+		C6D7EE7226291A1700F42FF0 /* InicioSocketExt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = InicioSocketExt.swift; path = RuedaCar/Inicio/InicioSocketExt.swift; sourceTree = SOURCE_ROOT; };
 		C6F0BB1823B7049E00266396 /* SolPendientesCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SolPendientesCell.xib; sourceTree = "<group>"; };
 		C6F0BB1A23B7053800266396 /* SolPendientesViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolPendientesViewCell.swift; sourceTree = "<group>"; };
 		C6F27B07238F2C5400679E07 /* SolicitudHistorial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolicitudHistorial.swift; sourceTree = "<group>"; };
